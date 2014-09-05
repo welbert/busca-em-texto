@@ -6,6 +6,7 @@
 //-----------Constante
 int alphabet_length = 26;
 //---------------------
+//No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
 char* alphabet;
 
