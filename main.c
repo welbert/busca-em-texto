@@ -36,6 +36,10 @@ int pos_letter(char c){
 	}
 }
 
+char get_letter(int i){
+	return alphabet[i];
+}
+
 char* append(char* token, char c) {//Fun����o para concaternar um char a uma string
 	char * new_str;
 	if(token==NULL){
@@ -117,30 +121,36 @@ int main(int argc, char **argv) {
 				while (c!= ' ' && c!='\n' && ftell(f) < file_size){
 					//str = append(str,c);
 					i = pos_letter(c);
-					aux_tree = tree->sheet[i];
+					aux_tree = aux_tree->sheet[i];
 
-					if (aux_tree= NULL) {
+					if (aux_tree== NULL) {
 						aux_tree = newSheet();
 					}
 					fscanf(f,"%c",&c);
 
 				}
 				aux_tree->exists = true;
-
+//TODO Não funciona o preenchimento da arvore e não salva o ultimo caractere
 
 			}
 			str=NULL;
 			aux_tree = NULL;
 
 			//testes para varrer a arvore
-			aux_tree = tree;
-			while(aux_tree->exists){
-				for(i=0;i<alphabet_length;i++){
-					if(aux_tree->sheet[i] != NULL){
-						aux_tree = aux_tree->sheet[i];
-					}
-				}
+			i = pos_letter('t');
+			if(tree->sheet[i]!=NULL){
+				printf("foi!");
 			}
+
+			//aux_tree = tree;
+			//while(!aux_tree->exists){
+				//for(i=0;i<alphabet_length;i++){
+					//if(aux_tree->sheet[i] != NULL){
+					//	str = append(str,get_letter(i));
+					//	aux_tree = aux_tree->sheet[i];
+					//}
+				//}
+			//}
 			//
 			free(aux_tree);
 			free(str);
