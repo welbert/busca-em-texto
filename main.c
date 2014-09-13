@@ -8,38 +8,6 @@ int alphabet_length = 26;
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
-char* alphabet;
-
-char* initialize_alphabet(){
-	char* string_aux = (char*)malloc(sizeof(char)*(alphabet_length+1));//aloca����o de espa��o para armazenar as letras do alfabeto
-	char c;
-	int i = 0;
-
-		for(c = 'a';c<='z';c++){
-			string_aux[i] = c;
-			i++;
-		}
-	return string_aux;
-}
-
-int pos_letter(char c){
-	int i;
-	for(i=0;i<alphabet_length;i++){
-		if(c==alphabet[i]){
-			break;
-		}
-	}
-	if(i>=0 && i<alphabet_length){
-		return i;
-	}else{
-		return -1;
-	}
-}
-
-char get_letter(int i){
-	return alphabet[i];
-}
-
 char* append(char* token, char c) {//Fun����o para concaternar um char a uma string
 	char * new_str;
 	if(token==NULL){
@@ -64,33 +32,48 @@ char* append(char* token, char c) {//Fun����o para concaternar um char a
 
 typedef struct No{
 	bool exists;//Sinaliza se existe a palavra at�� esse ponto
-	char* word;
-	struct No** sheet;
+	struct No* sheet[26];
 } No;
 
-No* newSheet(){
-	No* main_no = (No*)malloc(sizeof(No));//Aloca����o do n�� principal
-	No** aux = (No**)malloc(sizeof(No*)*alphabet_length);//aloca����o dos n��s que representam de [a-z]
-	//char* string_aux = (char*)malloc(sizeof(char)*(alphabet_length+1));//aloca����o de espa��o para armazenar as letras do alfabeto
+void insert_word(No** root, char* word){
+	int i;
+	if (*root == NULL){//Caso o nó é nulo (caso base)
+		*root = malloc(sizeof(No));
 
-	//char c;
-	//int i = 0;
+		for (i = 0;i<alphabet_length;i++)
+			(*root)->sheet[i]=NULL;//Retirada dos possiveis lixos de memoria
 
-	//for(c = 'a';c<='z';c++){
-	//	string_aux[i] = c;
-	//	i++;
-	//}
-	main_no->sheet = aux;
-	main_no->exists = false;
-	main_no->word = alphabet;
-
-	return main_no;
+		if(word[0]!='\0'){//Se n for final de palavra
+			insert_word(&(*root)->sheet[word[0]-'a'],word+1);//obs: a = 97, logo a-a = 0, posição 0(zero)
+			(*root)->exists=false;
+		}else{
+			(*root)->exists=true;//Final de palavra
+		}
+	}else{
+		if(word[0] != '/0'){
+			insert_word(&(*root)->sheet[word[0]-'a'],word+1);
+		}else{
+			(*root)->exists=true;
+		}
+	}
 }
+
+bool exist_word(No* root, char* word){
+
+	if(root == NULL)
+		return false;
+	else if(word[0]=='\0')
+		return root->exists;
+	else
+		return exist_word(root->sheet[word[0]-'a'],word+1);
+
+}
+
 
 int main(int argc, char **argv) {
 
 
-	if(argc >= 1){
+	if(argc >= 1){//Mudar dps <<<<<<<<<<<<<<<<<<<<<<<<<
 
 		FILE *f;
 		f = fopen("Debug/texto.txt","r");
@@ -99,11 +82,9 @@ int main(int argc, char **argv) {
 			char c;
 			char* str;
 			long int file_size;
-			int i;
-			No* tree;//n�� raiz
+			No* root;//n�� raiz
 
-			alphabet = initialize_alphabet();
-			tree = newSheet();//Inicializa����o da arvore
+			root = NULL;
 
 			fseek(f, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
 			file_size = ftell(f);//pegar o tamanho do arquivo
@@ -111,51 +92,29 @@ int main(int argc, char **argv) {
 
 
 			c='a';//preenche com qualquer coisa para entao entrar no while
-			No* aux_tree;//auxiliar para preencher/pecorrer a arvore com as palavras
+
 
 			while(c!=EOF && ftell(f) < file_size){//Loop para pegar o texto no arquivo
 				str=NULL;
-				aux_tree = tree;//aux_tree recebe o endere��o de tree(n�� raiz)
 				fscanf(f,"%c",&c);
 
 				while (c!= ' ' && c!='\n' && ftell(f) < file_size){
-					//str = append(str,c);
-					i = pos_letter(c);
-					aux_tree = aux_tree->sheet[i];
-
-					if (aux_tree== NULL) {
-						aux_tree = newSheet();
-					}
+					str = append(str,c);
 					fscanf(f,"%c",&c);
-
 				}
-				aux_tree->exists = true;
-//TODO Não funciona o preenchimento da arvore e não salva o ultimo caractere
+				if(str!=NULL)
+					insert_word(&root,str);
 
 			}
 			str=NULL;
-			aux_tree = NULL;
 
-			//testes para varrer a arvore
-			i = pos_letter('t');
-			if(tree->sheet[i]!=NULL){
-				printf("foi!");
+			if(exist_word(root,"teste")){
+				printf("aew");
+			}else{
+				printf("Not aew =/");
 			}
 
-			//aux_tree = tree;
-			//while(!aux_tree->exists){
-				//for(i=0;i<alphabet_length;i++){
-					//if(aux_tree->sheet[i] != NULL){
-					//	str = append(str,get_letter(i));
-					//	aux_tree = aux_tree->sheet[i];
-					//}
-				//}
-			//}
-			//
-			free(aux_tree);
 			free(str);
-
-
 			fclose(f);
 		}else{
 			printf("File (%s) not found!",argv[1]);
