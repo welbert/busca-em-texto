@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 
 			c='a';//preenche com qualquer coisa para entao entrar no while
 
-
+//TODO "Come" a ultima letra do arquivo, solução rapida: inserir " " no final do arquivo
 			while(c!=EOF && ftell(f) < file_size){//Loop para pegar o texto no arquivo
 				str=NULL;
 				fscanf(f,"%c",&c);
@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
 
 			}
 			str=NULL;
-
+//TODO O resto do trabalho! =)
 			if(exist_word(root,"teste")){
 				printf("aew");
 			}else{
