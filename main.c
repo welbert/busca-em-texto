@@ -5,8 +5,9 @@
 
 //-------------Estrutura
 typedef struct No{
-	bool exists;//Sinaliza se existe a palavra at�� esse ponto
+	bool exists;//Sinaliza se existe a palavra até esse ponto
 	struct No* sheet[26];
+	char* line;
 } No;
 //----------------------
 
@@ -14,6 +15,11 @@ typedef struct No{
 int alphabet_length = 26;
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
+
+//---------------Variaveis Globais
+No* root_dictionary;//n�� raiz
+
+//--------------------------------
 
 char* append(char* token, char c) {
 	//-------------------------------------------------------------
@@ -68,8 +74,10 @@ void insert_word(No** root, char* word){
 
 		*root = malloc(sizeof(No));
 
-		for (i = 0;i<alphabet_length;i++)
+		for (i = 0;i<alphabet_length;i++){
 			(*root)->sheet[i]=NULL;//Retirada dos possiveis lixos de memoria
+			(*root)->line=NULL;
+		}
 
 		if(word[0]!='\0'){//Se n for final de palavra
 			insert_word(&(*root)->sheet[word[0]-'a'],word+1);//obs: a = 97, logo a-a = 0, posição 0(zero)
@@ -123,7 +131,7 @@ bool is_letter(char c){
 	//			char c: letra que se deseja comparar
 	//
 	//Descrição da função:
-	//			verificar se o 'char c' é uma letra(a-z)
+	//			verificar se o 'char c' é uma letra minuscula(a-z)
 	//-------------------------------------------------------------
 
 	if(c>='a' && c<='z')
@@ -145,63 +153,90 @@ char lower(char c){
 	//-------------------------------------------------------------
 
 	if(c>='A' && c<='Z')
-		return c+32;
+		return c+32;//Tabela ASCII
 	else
 		return c;
+}
+
+void initialize_dictionary(char* file){
+	//-------------------------------------------------------------
+	//Retorno:
+	//			void
+	//
+	//Argumentos:
+	//			char* file: diretório/nome do arquivo que será aberto
+	//
+	//Descrição da função:
+	//			Inicializa a arvore com as palavras do dicionário
+	//-------------------------------------------------------------
+
+	FILE *f;
+			f = fopen("Debug/texto.txt","r");
+			//f = fopen(file,"r"); // Gramatica
+			if(f!=NULL){
+				char c;
+				char* str;
+				long int file_size;
+
+
+				root_dictionary = NULL;
+
+				fseek(f, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
+				file_size = ftell(f);//pegar o tamanho do arquivo
+				fseek(f,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
+
+
+				c='a';//preenche com qualquer coisa para entao entrar no while
+
+
+				while(c!=EOF && ftell(f) < file_size){//Loop para pegar o texto no arquivo
+					str=NULL;
+					fscanf(f,"%c",&c);
+					c = lower(c);
+
+					while (is_letter(c) && ftell(f) < file_size){
+						str = append(str,c);
+						fscanf(f,"%c",&c);
+						c = lower(c);
+					}
+					if(str!=NULL){
+						if(!is_letter(c)){
+							insert_word(&root_dictionary,str);
+						}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
+							str = append(str,c);
+							insert_word(&root_dictionary,str);
+						}
+					}
+				}
+				str=NULL;
+				free(str);
+				fclose(f);
+			}else{
+				printf("File (%s) not found!",file);
+				exit(-1);
+			}
+
 }
 
 
 int main(int argc, char **argv) {
 
 
-	if(argc >= 1){//Mudar dps <<<<<<<<<<<<<<<<<<<<<<<<<
+	if(argc >= 1){//Mudar dps para 3<<<<<<<<<<<<<<<<<<<<<<<<<
 
-		FILE *f;
-		f = fopen("Debug/texto.txt","r");
-		//f = fopen(argv[1],"r");
-		if(f!=NULL){
-			char c;
-			char* str;
-			long int file_size;
-			No* root;//n�� raiz
-
-			root = NULL;
-
-			fseek(f, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
-			file_size = ftell(f);//pegar o tamanho do arquivo
-			fseek(f,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
+		initialize_dictionary(argv[1]);
 
 
-			c='a';//preenche com qualquer coisa para entao entrar no while
+//TODO 1-Fazer uma função copia da "exists_word" mas que crie registro em root->line
+		//2-Palavras que não forem achadas colocar em um vetor para tratar depois
+		//3-tratar palavras q n existem
+		//4-mostrar a saida esperada
 
-//TODO "Come" a ultima letra do arquivo, solução rapida: inserir " " no final do arquivo
-			while(c!=EOF && ftell(f) < file_size){//Loop para pegar o texto no arquivo
-				str=NULL;
-				fscanf(f,"%c",&c);
-//TODO Criar uma função para identificar separadores(' '; '-' ; ';' )
-				while (c!= ' ' && c!='\n' && ftell(f) < file_size){
-					str = append(str,c);
-					fscanf(f,"%c",&c);
-				}
-				if(str!=NULL)
-					insert_word(&root,str);
-
-			}
-			str=NULL;
-//TODO O resto do trabalho! =)
-			if(exist_word(root,"teste")){
+			if(exist_word(root_dictionary,"wesley")){
 				printf("aew");
 			}else{
 				printf("Not aew =/");
 			}
-
-			free(str);
-			fclose(f);
-		}else{
-			printf("File (%s) not found!",argv[1]);
-		}
-
-
 	}else{
 		printf("Bad arguments");
 	}
