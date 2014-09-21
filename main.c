@@ -12,57 +12,78 @@ typedef struct No{
 //----------------------
 
 //-----------Constante
-int alphabet_length = 26;
+int c_alphabet_length = 26;
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
 //---------------Variaveis Globais
-No* root_dictionary;//n�� raiz
+No* gno_root_dictionary;//n�� raiz  ; gno =global No
 
 //--------------------------------
 
-char* append(char* token, char c) {
+char* append(char* a_str, char a_c) {
 	//-------------------------------------------------------------
 	//Retorno:
 	//			char* : Retorna a string concatenada;
 	//
 	//Argumentos:
-	//			char* token: Recebe a string como base;
+	//			char* a_str: Recebe a string como base;
 	//			char c: A letra que deseja-se concatenar
 	//
 	//Descrição da função:
 	//			Adiciona uma letra ao final da string, Ex.: cas + a = casa
 	//-------------------------------------------------------------
 
-	char * new_str;
-	if(token==NULL){// Se for nulo, aloca um espaço de memoria pra armazenar a letra e o '\0'
-		token = (char*)malloc(sizeof(char)*2);
-		token[0] = c;
-		token[1] = '\0';
+	char * ls_new_str;
+	if(a_str==NULL){// Se for nulo, aloca um espaço de memoria pra armazenar a letra e o '\0'
+		a_str = (char*)malloc(sizeof(char)*2);
+		a_str[0] = a_c;
+		a_str[1] = '\0';
 	}
 	else{
 		int i;
-		new_str = token;// salva em um ponteiro temporario
-		token = (char*)malloc(sizeof(char)*(strlen(new_str)+2));//Aloca um novo espaço do tamanho da nova palavra
-		for(i=0; i< strlen(new_str); i++)
-			token[i] = new_str[i];
-		token[i] = c;
+		ls_new_str = a_str;// salva em um ponteiro temporario
+		a_str = (char*)malloc(sizeof(char)*(strlen(ls_new_str)+2));//Aloca um novo espaço do tamanho da nova palavra
+		for(i=0; i< strlen(ls_new_str); i++)
+			a_str[i] = ls_new_str[i];
+		a_str[i] = a_c;
 		i++;
-		token[i] = '\0';
-		new_str = NULL;
-		free(new_str);
+		a_str[i] = '\0';
+		ls_new_str = NULL;
+		free(ls_new_str);
 	}
-	return token;
+	return a_str;
 }
 
-void insert_word(No** root, char* word){
+char* append_string(char* a_str1, char* a_str2) {
+	//-------------------------------------------------------------
+	//Retorno:
+	//			char* : Retorna a string concatenada;
+	//
+	//Argumentos:
+	//			char* ls_str1: Recebe a string como base;
+	//			char* ls_str2: Recebe a segunda string
+	//
+	//Descrição da função:
+	//			Concatena Strings
+	//-------------------------------------------------------------
+
+	char * ls_new_str = NULL;
+	ls_new_str = malloc(sizeof(char)*(strlen(a_str1)+strlen(a_str2)+1));
+	strcpy(ls_new_str, a_str1);
+	strcat(ls_new_str,a_str2);
+
+	return ls_new_str;
+}
+
+void insert_word(No** a_root, char* a_word){
 	//-------------------------------------------------------------
 	//Retorno:
 	//			void;
 	//
 	//Argumentos:
-	//			No** root: Nó da arvore que será inserido a letra da palavra(Passagem por parametro);
-	//			char* word: String que se deseja inserir;
+	//			No** a_root: Nó da arvore que será inserido a letra da palavra(Passagem por parametro);
+	//			char* a_word: String que se deseja inserir;
 	//
 	//Descrição da função:
 	//			Inserção na arvore trie de maneira recursiva;
@@ -70,151 +91,254 @@ void insert_word(No** root, char* word){
 
 	int i;
 
-	if (*root == NULL){//Caso o nó é nulo (caso base)
+	if (*a_root == NULL){//Caso o nó é nulo (caso base)
 
-		*root = malloc(sizeof(No));
+		*a_root = malloc(sizeof(No));
 
-		for (i = 0;i<alphabet_length;i++){
-			(*root)->sheet[i]=NULL;//Retirada dos possiveis lixos de memoria
-			(*root)->line=NULL;
+		for (i = 0;i<c_alphabet_length;i++){
+			(*a_root)->sheet[i]=NULL;//Retirada dos possiveis lixos de memoria
+			(*a_root)->line=NULL;
 		}
 
-		if(word[0]!='\0'){//Se n for final de palavra
-			insert_word(&(*root)->sheet[word[0]-'a'],word+1);//obs: a = 97, logo a-a = 0, posição 0(zero)
-			(*root)->exists=false;
+		if(a_word[0]!='\0'){//Se n for final de palavra
+			insert_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1);//obs: a = 97, logo a-a = 0, posição 0(zero)
+			(*a_root)->exists=false;
 		}else{
-			(*root)->exists=true;//Final de palavra
+			(*a_root)->exists=true;//Final de palavra
 		}
 
 	}else{
 
-		if(word[0] != '/0'){//Se a palavra não chegou ao fim
-			insert_word(&(*root)->sheet[word[0]-'a'],word+1);
+		if(a_word[0] !='\0'){//Se a palavra não chegou ao fim
+			insert_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1);
 		}else{
-			(*root)->exists=true;
+			(*a_root)->exists=true;
 		}
 
 	}
 }
 
-bool exist_word(No* root, char* word){
+char* exist_word(No* a_root, char* a_word){
 	//-------------------------------------------------------------
 	//Retorno:
 	//			bool : true = palavra achada
 	//					false = palavra não achada
 	//
 	//Argumentos:
-	//			No* root: nó da arvore
-	//			char* word: palavra que se deseja achar
+	//			No* a_root: nó da arvore
+	//			char* a_word: palavra que se deseja achar
 	//
 	//Descrição da função:
 	//			Busca a palavra na arvore e retorna a se existe ou não
 	//-------------------------------------------------------------
 
 
-	if(root == NULL)
-		return false;
-	else if(word[0]=='\0')
-		return root->exists;
+	if(a_root == NULL)
+		return NULL;
+	else if(a_word[0]=='\0')
+		return a_root->line;
 	else
-		return exist_word(root->sheet[word[0]-'a'],word+1);
+		return exist_word(a_root->sheet[a_word[0]-'a'],a_word+1);
 
 }
 
-bool is_letter(char c){
+bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
+	//-------------------------------------------------------------
+	//Retorno:
+	//			bool : true = palavra achada
+	//					false = palavra não achada
+	//
+	//Argumentos:
+	//			No** a_root: nó da arvore
+	//			char* a_word: palavra que se deseja achar
+	//			int a_line: A linha a palavra foi encontrada
+	//
+	//Descrição da função:
+	//			Busca a palavra na arvore,marca a linha do texto caso exista
+	//			e retorna a se existe ou não
+	//-------------------------------------------------------------
+
+
+	if((*a_root) == NULL)
+		return false;
+	else if(a_word[0]=='\0')
+
+		if ((*a_root)->exists){//Se existe a palavra, marca a linha que foi encontrada
+			char* aux;
+			if((*a_root)->line == NULL){
+				aux = (char*)((int)a_line+'0'); //TODO Erro ao converter, consertar
+				(*a_root)->line = append_string(NULL,aux);
+			}else{
+				aux = (char*)(','+(int)a_line+'0');
+				(*a_root)->line = append_string((*a_root)->line,aux);
+			}
+			return true;
+
+		}else{
+			return false;
+		}
+
+	else
+		return verify_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1,a_line);
+
+}
+
+bool is_letter(char a_c){
 	//-------------------------------------------------------------
 	//Retorno:
 	//			bool : true = é um char entre 'a' e 'z'(minusculo)
 	//					false = é algo que não é entre 'a' e 'z' (minusculo)
 	//
 	//Argumentos:
-	//			char c: letra que se deseja comparar
+	//			char a_c: letra que se deseja comparar
 	//
 	//Descrição da função:
 	//			verificar se o 'char c' é uma letra minuscula(a-z)
 	//-------------------------------------------------------------
 
-	if(c>='a' && c<='z')
+	if(a_c>='a' && a_c<='z')
 		return true;
 	else
 		return false;
 }
 
-char lower(char c){
+char lower(char a_c){
 	//-------------------------------------------------------------
 	//Retorno:
 	//			char : a letra minuscula
 	//
 	//Argumentos:
-	//			char c: letra que se deseja torna minuscula
+	//			char a_c: letra que se deseja torna minuscula
 	//
 	//Descrição da função:
 	//			Tornar uma letra maiuscula em minuscula
 	//-------------------------------------------------------------
 
-	if(c>='A' && c<='Z')
-		return c+32;//Tabela ASCII
+	if(a_c>='A' && a_c<='Z')
+		return a_c+32;//Tabela ASCII
 	else
-		return c;
+		return a_c;
 }
 
-void initialize_dictionary(char* file){
+void initialize_dictionary(char* a_name_file){
 	//-------------------------------------------------------------
 	//Retorno:
 	//			void
 	//
 	//Argumentos:
-	//			char* file: diretório/nome do arquivo que será aberto
+	//			char* a_name_file: diretório/nome do arquivo que será aberto
 	//
 	//Descrição da função:
 	//			Inicializa a arvore com as palavras do dicionário
 	//-------------------------------------------------------------
 
-	FILE *f;
-			f = fopen("Debug/texto.txt","r");
-			//f = fopen(file,"r"); // Gramatica
-			if(f!=NULL){
-				char c;
-				char* str;
-				long int file_size;
+	FILE *lf_file;
+			lf_file = fopen("Debug/texto.txt","r");
+			//lf_file = fopen(a_name_file,"r"); // Gramatica
+			if(lf_file!=NULL){
+				char lc_c;
+				char* ls_str;
+				long int li_file_size;
 
 
-				root_dictionary = NULL;
+				gno_root_dictionary = NULL;
 
-				fseek(f, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
-				file_size = ftell(f);//pegar o tamanho do arquivo
-				fseek(f,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
-
-
-				c='a';//preenche com qualquer coisa para entao entrar no while
+				fseek(lf_file, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
+				li_file_size = ftell(lf_file);//pegar o tamanho do arquivo
+				fseek(lf_file,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
 
 
-				while(c!=EOF && ftell(f) < file_size){//Loop para pegar o texto no arquivo
-					str=NULL;
-					fscanf(f,"%c",&c);
-					c = lower(c);
+				lc_c=' ';//preenche com qualquer coisa para entao entrar no while
 
-					while (is_letter(c) && ftell(f) < file_size){
-						str = append(str,c);
-						fscanf(f,"%c",&c);
-						c = lower(c);
+
+				while(lc_c!=EOF && ftell(lf_file) < li_file_size){//Loop para pegar o texto no arquivo
+					ls_str=NULL;
+					fscanf(lf_file,"%c",&lc_c);
+					lc_c = lower(lc_c);
+
+					while (is_letter(lc_c) && ftell(lf_file) < li_file_size){
+						ls_str = append(ls_str,lc_c);
+						fscanf(lf_file,"%c",&lc_c);
+						lc_c = lower(lc_c);
 					}
-					if(str!=NULL){
-						if(!is_letter(c)){
-							insert_word(&root_dictionary,str);
+					if(ls_str!=NULL){
+						if(!is_letter(lc_c)){
+							insert_word(&gno_root_dictionary,ls_str);
 						}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
-							str = append(str,c);
-							insert_word(&root_dictionary,str);
+							ls_str = append(ls_str,lc_c);
+							insert_word(&gno_root_dictionary,ls_str);
 						}
 					}
 				}
-				str=NULL;
-				free(str);
-				fclose(f);
+				ls_str=NULL;
+				free(ls_str);
+				fclose(lf_file);
 			}else{
-				printf("File (%s) not found!",file);
+				printf("File (%s) not found!",a_name_file);
 				exit(-1);
 			}
+
+}
+
+void initialize_text(char* a_name_file){
+	//-------------------------------------------------------------
+	//Retorno:
+	//			void
+	//
+	//Argumentos:
+	//			char* a_name_file: diretório/nome do arquivo que será aberto
+	//
+	//Descrição da função:
+	//			Lê o texto, buscando as palavras que existem e marcando a linha(verify_word)
+	//-------------------------------------------------------------
+
+	FILE *lf_file;
+		lf_file = fopen("Debug/texto.txt","r");
+		//f = fopen(a_name_file,"r"); // Gramatica
+		if(lf_file!=NULL){
+			char lc_c;
+			char* ls_str;
+			long int li_file_size;
+			int li_line = 1;
+
+			fseek(lf_file, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
+			li_file_size = ftell(lf_file);//pegar o tamanho do arquivo
+			fseek(lf_file,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
+
+
+			lc_c=' ';//preenche com qualquer coisa para entao entrar no while
+
+
+			while(lc_c!=EOF && ftell(lf_file) < li_file_size){//Loop para pegar o texto no arquivo
+				ls_str=NULL;
+				fscanf(lf_file,"%c",&lc_c);
+				lc_c = lower(lc_c);
+
+				while (is_letter(lc_c) && ftell(lf_file) < li_file_size){
+					ls_str = append(ls_str,lc_c);
+					fscanf(lf_file,"%c",&lc_c);
+					lc_c = lower(lc_c);
+				}
+				if(ls_str!=NULL){
+					if(!is_letter(lc_c)){
+						verify_word(&gno_root_dictionary,ls_str,li_line);
+					}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
+						ls_str = append(ls_str,lc_c);
+						verify_word(&gno_root_dictionary,ls_str,li_line);
+					}
+				}
+				if(lc_c == '\n'){
+					li_line++;
+				}
+			}
+			ls_str=NULL;
+			free(ls_str);
+			fclose(lf_file);
+
+		}else{
+			printf("File (%s) not found!",a_name_file);
+			exit(-1);
+		}
 
 }
 
@@ -225,15 +349,15 @@ int main(int argc, char **argv) {
 	if(argc >= 1){//Mudar dps para 3<<<<<<<<<<<<<<<<<<<<<<<<<
 
 		initialize_dictionary(argv[1]);
+		initialize_text(argv[2]);
 
-
-//TODO 1-Fazer uma função copia da "exists_word" mas que crie registro em root->line
-		//2-Palavras que não forem achadas colocar em um vetor para tratar depois
-		//3-tratar palavras q n existem
-		//4-mostrar a saida esperada
-
-			if(exist_word(root_dictionary,"wesley")){
-				printf("aew");
+//TODO	//1-Palavras que não forem achadas colocar em um vetor para tratar depois
+		//2-tratar palavras q n existem
+		//3-mostrar a saida esperada
+		char* ls_exit;
+		ls_exit = exist_word(gno_root_dictionary,"wesley");
+			if(ls_exit != NULL){
+				printf("%s",ls_exit);
 			}else{
 				printf("Not aew =/");
 			}
