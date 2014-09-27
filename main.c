@@ -69,10 +69,20 @@ char* append_string(char* a_str1, char* a_str2) {
 	//-------------------------------------------------------------
 
 	char * ls_new_str = NULL;
-	ls_new_str = malloc(sizeof(char)*(strlen(a_str1)+strlen(a_str2)+1));
-	strcpy(ls_new_str, a_str1);
-	strcat(ls_new_str,a_str2);
-
+	int tamanho=0;
+	if(a_str1 != NULL){
+		tamanho +=strlen(a_str1);
+	}
+	if(a_str2 != NULL){
+		tamanho += strlen(a_str2);
+	}
+	ls_new_str = malloc(sizeof(char)*tamanho);//Erro aqui ao dar strlen em null
+	if(a_str1 != NULL){
+		strcpy(ls_new_str, a_str1);
+	}
+	if(a_str2 != NULL){
+		strcat(ls_new_str,a_str2);
+	}
 	return ls_new_str;
 }
 
@@ -118,7 +128,7 @@ void insert_word(No** a_root, char* a_word){
 	}
 }
 
-char* exist_word(No* a_root, char* a_word){
+void exist_word(No* a_root, char* a_word){
 	//-------------------------------------------------------------
 	//Retorno:
 	//			bool : true = palavra achada
@@ -126,12 +136,32 @@ char* exist_word(No* a_root, char* a_word){
 	//
 	//Argumentos:
 	//			No* a_root: nó da arvore
-	//			char* a_word: palavra que se deseja achar
+	//			char* a_word: auxiliar de string
 	//
 	//Descrição da função:
-	//			Busca a palavra na arvore e retorna a se existe ou não
+	//			Varre toda a arvore Trie, imprimindo as palavras encontradas
 	//-------------------------------------------------------------
 
+
+	if(a_root == NULL)//Caso a arvore esteja nula, só ocorre na inicialização
+		return;
+	else {
+
+		int i;
+		if(a_root->exists)
+			printf("%s %s\n",a_word,a_root->line);//Se a palavra existe, mostre!
+
+
+		for(i = 0 ; i<c_alphabet_length; i++)//Continue procurando em cada filho
+			if(a_root->sheet[i]!= NULL)
+				exist_word(a_root->sheet[i],append(a_word,'a'+i));
+	}
+
+	return;
+
+}
+/*
+char* exist_word(No* a_root, char* a_word){
 
 	if(a_root == NULL)
 		return NULL;
@@ -140,7 +170,7 @@ char* exist_word(No* a_root, char* a_word){
 	else
 		return exist_word(a_root->sheet[a_word[0]-'a'],a_word+1);
 
-}
+}*/
 
 bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
 	//-------------------------------------------------------------
@@ -164,12 +194,13 @@ bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
 	else if(a_word[0]=='\0')
 
 		if ((*a_root)->exists){//Se existe a palavra, marca a linha que foi encontrada
-			char* aux;
+			char aux[5];
 			if((*a_root)->line == NULL){
-				aux = (char*)((int)a_line+'0'); //TODO Erro ao converter, consertar
+				sprintf(aux,"%d",a_line);
 				(*a_root)->line = append_string(NULL,aux);
 			}else{
-				aux = (char*)(','+(int)a_line+'0');
+				sprintf(aux,"%d",a_line);
+				(*a_root)->line = append((*a_root)->line,',');
 				(*a_root)->line = append_string((*a_root)->line,aux);
 			}
 			return true;
@@ -351,16 +382,12 @@ int main(int argc, char **argv) {
 		initialize_dictionary(argv[1]);
 		initialize_text(argv[2]);
 
-//TODO	//1-Palavras que não forem achadas colocar em um vetor para tratar depois
-		//2-tratar palavras q n existem
-		//3-mostrar a saida esperada
-		char* ls_exit;
-		ls_exit = exist_word(gno_root_dictionary,"wesley");
-			if(ls_exit != NULL){
-				printf("%s",ls_exit);
-			}else{
-				printf("Not aew =/");
-			}
+//TODO
+		//2-Tratar palavras q n existem na funcao verify_word
+
+
+		exist_word(gno_root_dictionary,NULL);//Mostra a saída
+
 	}else{
 		printf("Bad arguments");
 	}
