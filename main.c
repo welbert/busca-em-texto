@@ -9,6 +9,11 @@ typedef struct No{
 	struct No* sheet[26];
 	char* line;
 } No;
+
+typedef struct Sugestion{
+	char* word_text;
+	char* word_sugestion;
+} Sugestion;
 //----------------------
 
 //-----------Constante
@@ -18,7 +23,8 @@ int c_alphabet_length = 26;
 
 //---------------Variaveis Globais
 No* gno_root_dictionary;//n�� raiz  ; gno =global No
-
+Sugestion** gno_sugestion;// Estrutura para salvar as palavras 'erradas'
+int gi_number_sugestion=-1;// contador da estrutura acima
 //--------------------------------
 
 char* append(char* a_str, char a_c) {
@@ -84,6 +90,39 @@ char* append_string(char* a_str1, char* a_str2) {
 		strcat(ls_new_str,a_str2);
 	}
 	return ls_new_str;
+}
+
+void insert_sugestion(Sugestion** a_sugestion, char* a_word, char a_tipo){
+	//-------------------------------------------------------------
+	//Retorno:
+	//			void;
+	//
+	//Argumentos:
+	//			No** a_sugestion: Estrutura para armazenar as palavras que não forem encontradas no texto;
+	//			char* a_word: Palavra a ser inserida;
+	//			char a_tipo: O tipo de inserção - sugestion->word_text or sugestion->word_sugestion
+	//						T-text || S-sugestion
+	//
+	//Descrição da função:
+	//			Inserção na arvore trie de maneira recursiva;
+	//-------------------------------------------------------------
+
+	Sugestion* aux;
+	if (a_tipo == 'T'){
+		if((a_sugestion)==NULL){
+			(a_sugestion) = malloc(sizeof(Sugestion));
+		}else{
+			aux = (*a_sugestion);
+			(*a_sugestion) = malloc(sizeof(a_sugestion)+sizeof(Sugestion));
+			(*a_sugestion) = aux;
+		}
+		gi_number_sugestion++;
+
+		(a_sugestion[gi_number_sugestion])->word_text = a_word;
+
+	}else if(a_tipo == 'S'){
+		(a_sugestion[gi_number_sugestion])->word_sugestion = a_word;
+	}
 }
 
 void insert_word(No** a_root, char* a_word){
@@ -392,6 +431,12 @@ int main(int argc, char **argv) {
 
 
 		exist_word(gno_root_dictionary,NULL);//Mostra a saída
+		/*int i;
+		insert_sugestion(gno_sugestion,"tesre",'T');
+		insert_sugestion(gno_sugestion,"teste",'S');
+		for(i=0;i<=gi_number_sugestion;i++){
+			printf("%s %s\n",gno_sugestion[i]->word_text,gno_sugestion[i]->word_sugestion);
+		}*/
 
 	}else{
 		printf("Bad arguments");
