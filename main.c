@@ -149,7 +149,8 @@ void exist_word(No* a_root, char* a_word){
 
 		int i;
 		if(a_root->exists)
-			printf("%s %s\n",a_word,a_root->line);//Se a palavra existe, mostre!
+			if(a_root->line != NULL)
+				printf("%s %s\n",a_word,a_root->line);//Se a palavra existe e ocorreu no texto, mostre!
 
 
 		for(i = 0 ; i<c_alphabet_length; i++)//Continue procurando em cada filho
@@ -264,7 +265,7 @@ void initialize_dictionary(char* a_name_file){
 	//-------------------------------------------------------------
 
 	FILE *lf_file;
-			lf_file = fopen("Debug/texto.txt","r");
+			lf_file = fopen("Debug/gramatica.txt","r");
 			//lf_file = fopen(a_name_file,"r"); // Gramatica
 			if(lf_file!=NULL){
 				char lc_c;
@@ -383,7 +384,11 @@ int main(int argc, char **argv) {
 		initialize_text(argv[2]);
 
 //TODO
-		//2-Tratar palavras q n existem na funcao verify_word
+		//1-Tratar palavras q n existem na funcao verify_word
+		//Logica para fazer; ex casa
+		// primeiro faz a insercao casa[a-z]
+		// segundo a troca cas[a-z]
+		//delete ca[a-z]a
 
 
 		exist_word(gno_root_dictionary,NULL);//Mostra a saída
