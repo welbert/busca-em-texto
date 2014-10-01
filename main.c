@@ -41,6 +41,9 @@ char* append(char* a_str, char a_c) {
 	//-------------------------------------------------------------
 
 	char * ls_new_str;
+	if(a_str=='\0')
+		a_str = NULL;
+
 	if(a_str==NULL){// Se for nulo, aloca um espaço de memoria pra armazenar a letra e o '\0'
 		a_str = (char*)malloc(sizeof(char)*2);
 		a_str[0] = a_c;
@@ -212,7 +215,7 @@ char* exist_word(No* a_root, char* a_word){
 
 }*/
 
-bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
+bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_word 2.0
 	//-------------------------------------------------------------
 	//Retorno:
 	//			bool : true = palavra achada
@@ -235,14 +238,17 @@ bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
 
 		if ((*a_root)->exists){//Se existe a palavra, marca a linha que foi encontrada
 			char aux[5];
-			if((*a_root)->line == NULL){
-				sprintf(aux,"%d",a_line);
-				(*a_root)->line = append_string(NULL,aux);
-			}else{
-				sprintf(aux,"%d",a_line);
-				(*a_root)->line = append((*a_root)->line,',');
-				(*a_root)->line = append_string((*a_root)->line,aux);
+			if (a_line != -1){
+				if((*a_root)->line == NULL){
+					sprintf(aux,"%d",a_line);
+					(*a_root)->line = append_string(NULL,aux);
+				}else{
+					sprintf(aux,"%d",a_line);
+					(*a_root)->line = append((*a_root)->line,',');
+					(*a_root)->line = append_string((*a_root)->line,aux);
+				}
 			}
+			printf("casa\n");//tirar
 			return true;
 
 		}else{
@@ -250,7 +256,21 @@ bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
 		}
 
 	else
-		return verify_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1,a_line);
+		if (verify_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1,a_line,'I'))
+			return true;
+		else{
+			int i;
+			//INSERCAO
+			if(a_tipo =='I')
+				for (i=0;i<c_alphabet_length;i++)
+					verify_word(&(*a_root)->sheet[a_word[0]-'a'],append(a_word+1,'a'+i),-1,'F'); // houve alguma treta na recursão
+
+			//TROCA
+
+			//DELETE
+
+			return true;
+		}
 
 }
 
@@ -392,10 +412,10 @@ void initialize_text(char* a_name_file){
 				}
 				if(ls_str!=NULL){
 					if(!is_letter(lc_c)){
-						verify_word(&gno_root_dictionary,ls_str,li_line);
+						verify_word(&gno_root_dictionary,ls_str,li_line,'F');
 					}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
 						ls_str = append(ls_str,lc_c);
-						verify_word(&gno_root_dictionary,ls_str,li_line);
+						verify_word(&gno_root_dictionary,ls_str,li_line,'F');
 					}
 				}
 				if(lc_c == '\n'){
