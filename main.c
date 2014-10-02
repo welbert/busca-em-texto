@@ -263,13 +263,13 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 			//INSERCAO
 			if(a_tipo =='I')
 				for (i=0;i<c_alphabet_length;i++)
-					verify_word(&(*a_root)->sheet[a_word[0]-'a'],append(a_word+1,'a'+i),-1,'F'); // houve alguma treta na recursão
-
+					if(verify_word(&(*a_root)->sheet[a_word[0]-'a'],append(a_word+1,'a'+i),-1,'F')); // houve alguma treta na recursão
+						return true;
 			//TROCA
 
 			//DELETE
 
-			return true;
+			return false;
 		}
 
 }
