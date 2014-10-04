@@ -282,7 +282,6 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 					(*a_root)->line = append_string((*a_root)->line,aux);
 				}
 			}
-			printf("casa");
 			return true;
 
 		}else{
@@ -290,23 +289,31 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 		}
 
 	else
-		if (verify_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1,a_line,'I'))
+		if (verify_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1,a_line,'I')){
+			printf("%c\n",a_word[0]);
 			return true;
+		}
 		else{
 			int i;
 			//INSERCAO
-			if(a_tipo =='I')
-				for (i=0;i<c_alphabet_length;i++)
-					//if((*a_root)->sheet[a_word[0]-'a']!=NULL) // evitar 'empilhamento' desnecessario
-						if(verify_word(&(*a_root)->sheet[a_word[0]-'a'],append_pos(a_word+1,'a'+i,0),-1,'F')) // houve alguma treta na recursão
+			if(a_tipo =='I'){
+				char* aux = NULL;
+				for (i=0;i<c_alphabet_length;i++){
+					aux = append_pos(a_word,'a'+i,0);
+					if((*a_root)->sheet[aux[0]-'a']!=NULL) // evitar 'empilhamento' desnecessario
+						if(verify_word(&(*a_root)->sheet[aux[0]-'a'],aux+1,-1,'F')){ // não insere na ultima posição
+							printf("%c\n",aux[0]);
 							return true;
+						}
+				}
+			}
 			//TROCA
 
 			//DELETE
 
 			return false;
 		}
-
+	//TODO treta!
 }
 
 bool is_letter(char a_c){
@@ -447,10 +454,10 @@ void initialize_text(char* a_name_file){
 				}
 				if(ls_str!=NULL){
 					if(!is_letter(lc_c)){
-						verify_word(&gno_root_dictionary,ls_str,li_line,'F');
+						verify_word(&gno_root_dictionary,ls_str,li_line,'I');
 					}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
 						ls_str = append(ls_str,lc_c);
-						verify_word(&gno_root_dictionary,ls_str,li_line,'F');
+						verify_word(&gno_root_dictionary,ls_str,li_line,'I');
 					}
 				}
 				if(lc_c == '\n'){
