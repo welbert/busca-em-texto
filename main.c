@@ -27,6 +27,7 @@ Sugestion** gno_sugestion;// Estrutura para salvar as palavras 'erradas'
 int gi_number_sugestion=-1;// contador da estrutura acima
 //--------------------------------
 
+
 char* append(char* a_str, char a_c) {
 	//-------------------------------------------------------------
 	//Retorno:
@@ -62,6 +63,38 @@ char* append(char* a_str, char a_c) {
 		free(ls_new_str);
 	}
 	return a_str;
+}
+
+char* append_pos(char* a_str, char a_c, int pos){
+	//-------------------------------------------------------------
+	//Retorno:
+	//			char* : Retorna a string concatenada;
+	//
+	//Argumentos:
+	//			char* ls_str1: Recebe a string como base;
+	//			char a_c: Recebe o char para concatenar
+	//			int pos: a posição para concatenar
+	//Descrição da função:
+	//			Concatena um char a uma string em uma determinada posição
+	//-------------------------------------------------------------
+
+
+	if(a_str==NULL)
+		return append(NULL,a_c);
+
+	else{
+		int len = strlen(a_str);
+		if(len-1>=pos){
+			char * aux;
+			aux = append(a_str,NULL); // allocar o 1 espaço a mais
+			memmove(aux+pos+1, aux+pos, len-pos+1);
+			aux[pos]=a_c;
+			return aux;
+		}
+		else
+			return append(a_str,a_c);;
+
+	}
 }
 
 char* append_string(char* a_str1, char* a_str2) {
@@ -215,6 +248,8 @@ char* exist_word(No* a_root, char* a_word){
 
 }*/
 
+
+
 bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_word 2.0
 	//-------------------------------------------------------------
 	//Retorno:
@@ -230,7 +265,6 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 	//			Busca a palavra na arvore,marca a linha do texto caso exista
 	//			e retorna a se existe ou não
 	//-------------------------------------------------------------
-
 
 	if((*a_root) == NULL)
 		return false;
@@ -248,7 +282,7 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 					(*a_root)->line = append_string((*a_root)->line,aux);
 				}
 			}
-			printf("casa\n");//tirar
+			printf("casa");
 			return true;
 
 		}else{
@@ -263,8 +297,9 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 			//INSERCAO
 			if(a_tipo =='I')
 				for (i=0;i<c_alphabet_length;i++)
-					if(verify_word(&(*a_root)->sheet[a_word[0]-'a'],append(a_word+1,'a'+i),-1,'F')); // houve alguma treta na recursão
-						return true;
+					//if((*a_root)->sheet[a_word[0]-'a']!=NULL) // evitar 'empilhamento' desnecessario
+						if(verify_word(&(*a_root)->sheet[a_word[0]-'a'],append_pos(a_word+1,'a'+i,0),-1,'F')) // houve alguma treta na recursão
+							return true;
 			//TROCA
 
 			//DELETE
@@ -441,6 +476,8 @@ int main(int argc, char **argv) {
 
 		initialize_dictionary(argv[1]);
 		initialize_text(argv[2]);
+
+
 
 //TODO
 		//1-Tratar palavras q n existem na funcao verify_word
