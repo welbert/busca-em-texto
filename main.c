@@ -11,20 +11,23 @@ typedef struct No{
 } No;
 
 typedef struct Sugestion{
-	char* word_text;
+	char* word_text;//chave
 	char* word_sugestion;
+	struct Sugestion* prox;
 } Sugestion;
 //----------------------
 
 //-----------Constante
-int c_alphabet_length = 26;
+#define c_alphabet_length 26
+#define c_hash 100
+
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
 //---------------Variaveis Globais
 No* gno_root_dictionary;//n�� raiz  ; gno =global No
-Sugestion** gno_sugestion;// Estrutura para salvar as palavras 'erradas'
-int gi_number_sugestion=-1;// contador da estrutura acima
+Sugestion gno_sugestion[c_hash];// Estrutura para salvar as palavras 'erradas'
+int gi_last_key=-1;// contador da estrutura acima
 //--------------------------------
 
 
@@ -127,39 +130,50 @@ char* append_string(char* a_str1, char* a_str2) {
 	}
 	return ls_new_str;
 }
+/*
+int hash(char* a_str, int a_vhash) {
+   int i, h = a_str[0];
+   for (i = 1; a_str[i] != '\0'; i++)
+      h = (h * 256 + a_str[i]) % a_vhash;
+   return h % a_vhash;
+}
 
-void insert_sugestion(Sugestion** a_sugestion, char* a_word, char a_tipo){
-	//-------------------------------------------------------------
-	//Retorno:
-	//			void;
-	//
-	//Argumentos:
-	//			No** a_sugestion: Estrutura para armazenar as palavras que não forem encontradas no texto;
-	//			char* a_word: Palavra a ser inserida;
-	//			char a_tipo: O tipo de inserção - sugestion->word_text or sugestion->word_sugestion
-	//						T-text || S-sugestion
-	//
-	//Descrição da função:
-	//			Inserção na arvore trie de maneira recursiva;
-	//-------------------------------------------------------------
 
-	Sugestion* aux;
-	if (a_tipo == 'T'){
-		if((a_sugestion)==NULL){
-			(a_sugestion) = malloc(sizeof(Sugestion));
+void insert_hash(char* a_str,char tipo){
+	if (tipo=='P'){
+		int key = 0;//hash(a_str,c_hash);
+		if((&gno_sugestion[key])==NULL){
+			(&gno_sugestion[key])->word_text = a_str;
+			(&gno_sugestion[key])->prox = NULL;
 		}else{
-			aux = (*a_sugestion);
-			(*a_sugestion) = malloc(sizeof(a_sugestion)+sizeof(Sugestion));
-			(*a_sugestion) = aux;
+			Sugestion* aux;
+			aux = search_hash(a_str);
+			aux = malloc(sizeof(Sugestion));
+			aux->word_text = a_str;
+			aux->prox = NULL;
 		}
-		gi_number_sugestion++;
+	}else if(tipo=='S'){
 
-		(a_sugestion[gi_number_sugestion])->word_text = a_word;
-
-	}else if(a_tipo == 'S'){
-		(a_sugestion[gi_number_sugestion])->word_sugestion = a_word;
 	}
 }
+
+Sugestion* search_hash(char* a_str){
+	int key = hash(a_str,c_hash);
+
+	if((&gno_sugestion[key])->word_text != NULL){
+		return (&gno_sugestion[key]);
+	}else{
+		while((&gno_sugestion[key])->prox != NULL){
+			if((&gno_sugestion[key])->word_text == a_str)
+				return NULL;
+			(&gno_sugestion[key]) = (&gno_sugestion[key])->prox;
+		}
+		return (&gno_sugestion[key])->prox;
+	}
+	return NULL;
+}*/
+
+
 
 void insert_word(No** a_root, char* a_word){
 	//-------------------------------------------------------------
@@ -301,13 +315,23 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 				for (i=0;i<c_alphabet_length;i++){
 					aux = append_pos(a_word,'a'+i,0);
 					if((*a_root)->sheet[aux[0]-'a']!=NULL) // evitar 'empilhamento' desnecessario
-						if(verify_word(&(*a_root)->sheet[aux[0]-'a'],aux+1,-1,'F')){ // não insere na ultima posição
+						if(verify_word(&(*a_root)->sheet[aux[0]-'a'],aux+1,-1,'F')){ // TODO não insere na ultima posição
 							printf("%c\n",aux[0]);
 							return true;
 						}
 				}
+				a_tipo = 'T';
 			}
 			//TROCA
+			if(a_tipo == 'T'){
+				for (i=0;i<c_alphabet_length;i++){
+					if((*a_root)->sheet[i]!=NULL)
+						if(verify_word(&(*a_root)->sheet[i],a_word+1,-1,'F')){
+							printf("%c\n",'a'+i);
+							return true;
+						}
+				}
+			}
 
 			//DELETE
 
@@ -483,7 +507,6 @@ int main(int argc, char **argv) {
 
 		initialize_dictionary(argv[1]);
 		initialize_text(argv[2]);
-
 
 
 //TODO
