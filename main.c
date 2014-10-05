@@ -20,7 +20,7 @@ typedef struct Sugestion{
 //-----------Constante
 #define c_alphabet_length 26
 #define c_hash 100
-
+#define c_custo 10
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
@@ -29,8 +29,16 @@ No* gno_root_dictionary;//n�� raiz  ; gno =global No
 Sugestion* gno_sugestion[c_hash];// Estrutura para salvar as palavras 'erradas'
 char* gs_last_word;//pegar na a palavra corrigida
 bool is_correction = false;//armengue
+int gi_custo = 0;
+
 //--------------------------------
 
+char type_correction(char t){
+	if(gi_custo<c_custo)
+		return t;
+	else
+		return 'F';
+}
 
 char* append(char* a_str, char a_c) {
 	//-------------------------------------------------------------
@@ -315,13 +323,15 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 		}
 		else{
 			int i;
+
 			//INSERCAO
 			if(a_tipo =='I'){
+				gi_custo++;
 				char* aux = NULL;
 				for (i=0;i<c_alphabet_length;i++){
 					aux = append_pos(a_word,'a'+i,0);
 					if((*a_root)->sheet[aux[0]-'a']!=NULL) // evitar 'empilhamento' desnecessario
-						if(verify_word(&(*a_root)->sheet[aux[0]-'a'],aux+1,-1,'F')){ // TODO não insere na ultima posição
+						if(verify_word(&(*a_root)->sheet[aux[0]-'a'],aux+1,-1,type_correction('I'))){ // TODO não insere na ultima posição
 				//			printf("%c\n",aux[0]);
 							gs_last_word = append_pos(gs_last_word,aux[0],0);
 							is_correction = true;
@@ -329,13 +339,15 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 						}
 				}
 				a_tipo = 'T';
+				gi_custo--;
 			}
 
 			//TROCA
 			if(a_tipo == 'T'){
+				gi_custo++;
 				for (i=0;i<c_alphabet_length;i++){
 					if((*a_root)->sheet[i]!=NULL)
-						if(verify_word(&(*a_root)->sheet[i],a_word+2,-1,'F')){
+						if(verify_word(&(*a_root)->sheet[i],a_word+2,-1,type_correction('T'))){
 					//		printf("%c\n",'a'+i);
 							gs_last_word = append_pos(gs_last_word,'a'+i,0);
 							is_correction = true;
@@ -343,17 +355,20 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 						}
 				}
 				a_tipo = 'D';
+				gi_custo--;
 			}
 
 			//DELETE
 			if(a_tipo == 'D'){
+				gi_custo++;
 				if(a_word[1]!='\0')
-					if(verify_word(&(*a_root)->sheet[a_word[1]-'a'],a_word+1,-1,'F')){
+					if(verify_word(&(*a_root)->sheet[a_word[1]-'a'],a_word+1,-1,type_correction('D'))){
 						//printf("%c",a_word[1]);
 						gs_last_word = append_pos(gs_last_word,a_word[1],0);
 						is_correction = true;
 						return true;
 					}
+				gi_custo--;
 			}
 
 
