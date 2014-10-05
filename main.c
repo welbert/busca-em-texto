@@ -26,8 +26,8 @@ typedef struct Sugestion{
 
 //---------------Variaveis Globais
 No* gno_root_dictionary;//n�� raiz  ; gno =global No
-Sugestion gno_sugestion[c_hash];// Estrutura para salvar as palavras 'erradas'
-int gi_last_key=-1;// contador da estrutura acima
+Sugestion* gno_sugestion[c_hash];// Estrutura para salvar as palavras 'erradas'
+char* gs_last_word;//pegar na hash
 //--------------------------------
 
 
@@ -121,7 +121,7 @@ char* append_string(char* a_str1, char* a_str2) {
 	if(a_str2 != NULL){
 		tamanho += strlen(a_str2);
 	}
-	ls_new_str = malloc(sizeof(char)*tamanho);//Erro aqui ao dar strlen em null
+	ls_new_str = malloc(sizeof(char)*tamanho);
 	if(a_str1 != NULL){
 		strcpy(ls_new_str, a_str1);
 	}
@@ -130,7 +130,7 @@ char* append_string(char* a_str1, char* a_str2) {
 	}
 	return ls_new_str;
 }
-/*
+
 int hash(char* a_str, int a_vhash) {
    int i, h = a_str[0];
    for (i = 1; a_str[i] != '\0'; i++)
@@ -139,41 +139,50 @@ int hash(char* a_str, int a_vhash) {
 }
 
 
-void insert_hash(char* a_str,char tipo){
-	if (tipo=='P'){
-		int key = 0;//hash(a_str,c_hash);
-		if((&gno_sugestion[key])==NULL){
-			(&gno_sugestion[key])->word_text = a_str;
-			(&gno_sugestion[key])->prox = NULL;
-		}else{
-			Sugestion* aux;
-			aux = search_hash(a_str);
-			aux = malloc(sizeof(Sugestion));
-			aux->word_text = a_str;
-			aux->prox = NULL;
-		}
-	}else if(tipo=='S'){
 
-	}
-}
 
-Sugestion* search_hash(char* a_str){
-	int key = hash(a_str,c_hash);
+Sugestion* search_insert_hash(char* a_str){
+	int key = 0;//hash(a_str,c_hash);
 
-	if((&gno_sugestion[key])->word_text != NULL){
-		return (&gno_sugestion[key]);
+	if(gno_sugestion[key]== NULL){
+		(gno_sugestion[key]) = malloc(sizeof(Sugestion));
+		return (gno_sugestion[key]);
 	}else{
-		while((&gno_sugestion[key])->prox != NULL){
-			if((&gno_sugestion[key])->word_text == a_str)
+		Sugestion* current = (gno_sugestion[key]);
+		Sugestion* aux = malloc(sizeof(Sugestion));
+		while(current != NULL){
+			if(strcmp((current)->word_text,a_str)==0)//Não é o ideal para comparação
 				return NULL;
-			(&gno_sugestion[key]) = (&gno_sugestion[key])->prox;
+			(current) = (current)->prox;
 		}
-		return (&gno_sugestion[key])->prox;
+		(current) = aux;
+
+		return (current);
 	}
 	return NULL;
-}*/
+}
 
+void insert_hash(char* a_str,char* a_str1){
 
+		Sugestion* aux;
+		aux = search_insert_hash(a_str);
+		if(aux!=NULL){
+			aux->word_text = a_str;
+			aux->word_sugestion = a_str1;
+			aux->prox = NULL;
+		}
+
+}
+
+bool search_hash(char* a_str){
+	int key = hash(a_str,c_hash);
+	if(gno_sugestion[key]==NULL){
+		return false;
+	}else{
+		//while(gno_sugestion[key])
+	}
+	return false;
+}
 
 void insert_word(No** a_root, char* a_word){
 	//-------------------------------------------------------------
@@ -322,18 +331,28 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 				}
 				a_tipo = 'T';
 			}
+
 			//TROCA
 			if(a_tipo == 'T'){
 				for (i=0;i<c_alphabet_length;i++){
 					if((*a_root)->sheet[i]!=NULL)
-						if(verify_word(&(*a_root)->sheet[i],a_word+1,-1,'F')){
+						if(verify_word(&(*a_root)->sheet[i],a_word+2,-1,'F')){
 							printf("%c\n",'a'+i);
 							return true;
 						}
 				}
+				a_tipo = 'D';
 			}
 
-			//DELETE
+			//DELETE C A S A
+			if(a_tipo == 'D'){
+				if(a_word[1]!='\0')
+					if(verify_word(&(*a_root)->sheet[a_word[1]-'a'],a_word+1,-1,'F')){
+						printf("%c",a_word[1]);
+						return true;
+					}
+			}
+
 
 			return false;
 		}
@@ -504,6 +523,11 @@ int main(int argc, char **argv) {
 
 
 	if(argc >= 1){//Mudar dps para 3<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		insert_hash("aew","ae");
+		insert_hash("vaca","abra");
+		insert_hash("aew","ae");
+		insert_hash("cada","casa");
 
 		initialize_dictionary(argv[1]);
 		initialize_text(argv[2]);
