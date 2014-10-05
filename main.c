@@ -20,7 +20,7 @@ typedef struct Sugestion{
 //-----------Constante
 #define c_alphabet_length 26
 #define c_hash 100
-#define c_custo 10
+#define c_custo 14 //Constante para controlar o custo de edição
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
@@ -561,7 +561,7 @@ int main(int argc, char **argv) {
 
 //TODO
 		//1 - Criar estrutura para armazenar os "erros" e as correções
-		//2 - Ampliar a distância de edição, atualmente tem custo 1
+		//2 - Conserta o problema de inserção da correção
 		//3 - Simplificar códigos
 
 
