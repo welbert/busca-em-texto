@@ -27,7 +27,8 @@ typedef struct Sugestion{
 //---------------Variaveis Globais
 No* gno_root_dictionary;//n�� raiz  ; gno =global No
 Sugestion* gno_sugestion[c_hash];// Estrutura para salvar as palavras 'erradas'
-char* gs_last_word;//pegar na hash
+char* gs_last_word;//pegar na a palavra corrigida
+bool is_correction = false;//armengue
 //--------------------------------
 
 
@@ -141,31 +142,26 @@ int hash(char* a_str, int a_vhash) {
 
 
 
-Sugestion* search_insert_hash(char* a_str){
-	int key = 0;//hash(a_str,c_hash);
+Sugestion* search_insert_hash(char* a_str,Sugestion* no){
+	//int key = 0;//hash(a_str,c_hash);
 
-	if(gno_sugestion[key]== NULL){
-		(gno_sugestion[key]) = malloc(sizeof(Sugestion));
-		return (gno_sugestion[key]);
+	if(no== NULL){
+		(no) = malloc(sizeof(Sugestion));
+		return (no);
 	}else{
-		Sugestion* current = (gno_sugestion[key]);
-		Sugestion* aux = malloc(sizeof(Sugestion));
-		while(current != NULL){
-			if(strcmp((current)->word_text,a_str)==0)//Não é o ideal para comparação
-				return NULL;
-			(current) = (current)->prox;
-		}
-		(current) = aux;
+		if(strcmp((no)->word_text,a_str)==0)//Não é o ideal para comparação
+			return NULL;
 
-		return (current);
+		return search_insert_hash(a_str,no->prox);
 	}
-	return NULL;
+
+	//return NULL;
 }
 
 void insert_hash(char* a_str,char* a_str1){
-
+	int key = 0;
 		Sugestion* aux;
-		aux = search_insert_hash(a_str);
+		aux = search_insert_hash(a_str,gno_sugestion[key]);
 		if(aux!=NULL){
 			aux->word_text = a_str;
 			aux->word_sugestion = a_str1;
@@ -313,7 +309,8 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 
 	else
 		if (verify_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1,a_line,'I')){
-			printf("%c\n",a_word[0]);
+			//printf("%c\n",a_word[0]);
+			gs_last_word = append_pos(gs_last_word,a_word[0],0);
 			return true;
 		}
 		else{
@@ -325,7 +322,9 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 					aux = append_pos(a_word,'a'+i,0);
 					if((*a_root)->sheet[aux[0]-'a']!=NULL) // evitar 'empilhamento' desnecessario
 						if(verify_word(&(*a_root)->sheet[aux[0]-'a'],aux+1,-1,'F')){ // TODO não insere na ultima posição
-							printf("%c\n",aux[0]);
+				//			printf("%c\n",aux[0]);
+							gs_last_word = append_pos(gs_last_word,aux[0],0);
+							is_correction = true;
 							return true;
 						}
 				}
@@ -337,18 +336,22 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 				for (i=0;i<c_alphabet_length;i++){
 					if((*a_root)->sheet[i]!=NULL)
 						if(verify_word(&(*a_root)->sheet[i],a_word+2,-1,'F')){
-							printf("%c\n",'a'+i);
+					//		printf("%c\n",'a'+i);
+							gs_last_word = append_pos(gs_last_word,'a'+i,0);
+							is_correction = true;
 							return true;
 						}
 				}
 				a_tipo = 'D';
 			}
 
-			//DELETE C A S A
+			//DELETE
 			if(a_tipo == 'D'){
 				if(a_word[1]!='\0')
 					if(verify_word(&(*a_root)->sheet[a_word[1]-'a'],a_word+1,-1,'F')){
-						printf("%c",a_word[1]);
+						//printf("%c",a_word[1]);
+						gs_last_word = append_pos(gs_last_word,a_word[1],0);
+						is_correction = true;
 						return true;
 					}
 			}
@@ -356,7 +359,7 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 
 			return false;
 		}
-	//TODO treta!
+
 }
 
 bool is_letter(char a_c){
@@ -497,10 +500,18 @@ void initialize_text(char* a_name_file){
 				}
 				if(ls_str!=NULL){
 					if(!is_letter(lc_c)){
+						gs_last_word = NULL;
+						is_correction = false;
 						verify_word(&gno_root_dictionary,ls_str,li_line,'I');
+						if(is_correction)
+							printf("%s %s\n",ls_str,gs_last_word);
 					}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
 						ls_str = append(ls_str,lc_c);
+						gs_last_word = NULL;
+						is_correction = false;
 						verify_word(&gno_root_dictionary,ls_str,li_line,'I');
+						if(is_correction)
+							printf("%s %s\n",ls_str,gs_last_word);
 					}
 				}
 				if(lc_c == '\n'){
@@ -524,21 +535,19 @@ int main(int argc, char **argv) {
 
 	if(argc >= 1){//Mudar dps para 3<<<<<<<<<<<<<<<<<<<<<<<<<
 
-		insert_hash("aew","ae");
-		insert_hash("vaca","abra");
-		insert_hash("aew","ae");
-		insert_hash("cada","casa");
+		//insert_hash("aew","ae");
+		//insert_hash("vaca","abra");
+		//insert_hash("aew","ae");
+		//insert_hash("cada","casa");
 
 		initialize_dictionary(argv[1]);
 		initialize_text(argv[2]);
 
 
 //TODO
-		//1-Tratar palavras q n existem na funcao verify_word
-		//Logica para fazer; ex casa
-		// primeiro faz a insercao casa[a-z]
-		// segundo a troca cas[a-z]
-		//delete ca[a-z]a
+		//1 - Criar estrutura para armazenar os "erros" e as correções
+		//2 - Ampliar a distância de edição, atualmente tem custo 1
+		//3 - Simplificar códigos
 
 
 		exist_word(gno_root_dictionary,NULL);//Mostra a saída
