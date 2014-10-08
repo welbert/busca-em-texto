@@ -5,7 +5,7 @@
 
 //-------------Estrutura
 typedef struct No{
-	bool exists;//Sinaliza se existe a palavra até esse ponto
+	bool* exists;//Sinaliza se existe a palavra até esse ponto
 	struct No* sheet[26];
 	int* line;
 } No;
@@ -26,10 +26,11 @@ typedef struct Sugestion{
 
 //---------------Variaveis Globais
 No* gno_root_dictionary;//n�� raiz  ; gno =global No
-Sugestion* gno_sugestion[c_hash];// Estrutura para salvar as palavras 'erradas'
+Sugestion* gno_sugestion;
 char* gs_last_word;//pegar na a palavra corrigida
 bool is_correction = false;//armengue
 int gi_custo = 0;
+char* gs_palavra;//Salva a palavra exatamente como foi escrita
 
 //--------------------------------
 
@@ -140,53 +141,6 @@ char* append_string(char* a_str1, char* a_str2) {
 	return ls_new_str;
 }
 
-int hash(char* a_str, int a_vhash) {
-   int i, h = a_str[0];
-   for (i = 1; a_str[i] != '\0'; i++)
-      h = (h * 256 + a_str[i]) % a_vhash;
-   return h % a_vhash;
-}
-
-
-
-
-Sugestion* search_insert_hash(char* a_str,Sugestion* no){
-	//int key = 0;//hash(a_str,c_hash);
-
-	if(no== NULL){
-		(no) = malloc(sizeof(Sugestion));
-		return (no);
-	}else{
-		if(strcmp((no)->word_text,a_str)==0)//Não é o ideal para comparação
-			return NULL;
-
-		return search_insert_hash(a_str,no->prox);
-	}
-
-	//return NULL;
-}
-
-void insert_hash(char* a_str,char* a_str1){
-	int key = 0;
-		Sugestion* aux;
-		aux = search_insert_hash(a_str,gno_sugestion[key]);
-		if(aux!=NULL){
-			aux->word_text = a_str;
-			aux->word_sugestion = a_str1;
-			aux->prox = NULL;
-		}
-
-}
-
-bool search_hash(char* a_str){
-	int key = hash(a_str,c_hash);
-	if(gno_sugestion[key]==NULL){
-		return false;
-	}else{
-		//while(gno_sugestion[key])
-	}
-	return false;
-}
 
 void insert_word(No** a_root, char* a_word){
 	//-------------------------------------------------------------
@@ -251,9 +205,13 @@ void exist_word(No* a_root, char* a_word){
 
 		int i;
 		if(a_root->exists)
-			if(a_root->line != NULL)
-				printf("%s %s\n",a_word,a_root->line);//Se a palavra existe e ocorreu no texto, mostre!
+			if(a_root->line != NULL){//Se a palavra existe e ocorreu no texto, mostre!
+				printf("%s %d",a_word,a_root->line[0]);
+				for(i=1;a_root->line[i]!='\0';i++)
+					printf(", %d",a_root->line[i]);
 
+				printf("\n");
+			}
 
 		for(i = 0 ; i<c_alphabet_length; i++)//Continue procurando em cada filho
 			if(a_root->sheet[i]!= NULL)
@@ -312,8 +270,8 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 						(*a_root)->line[i] = aux[i];
 						i++;
 					}
-					if((*a_root)->line[i-1]!=(*a_root)->line[i])
-						(*a_root)->line[i] = a_line; //TODO fazer a impressao
+					if((*a_root)->line[i-1]!=a_line)
+						(*a_root)->line[i] = a_line;
 				}
 			}
 			return true;
@@ -397,7 +355,7 @@ bool is_letter(char a_c){
 	//			verificar se o 'char c' é uma letra minuscula(a-z)
 	//-------------------------------------------------------------
 
-	if(a_c>='a' && a_c<='z')
+	if((a_c>='a' && a_c<='z')||(a_c>='A' && a_c<='Z'))
 		return true;
 	else
 		return false;
@@ -454,18 +412,26 @@ void initialize_dictionary(char* a_name_file){
 
 				while(lc_c!=EOF && ftell(lf_file) < li_file_size){//Loop para pegar o texto no arquivo
 					ls_str=NULL;
+					gs_palavra=NULL;
 					fscanf(lf_file,"%c",&lc_c);
-					lc_c = lower(lc_c);
+
 
 					while (is_letter(lc_c) && ftell(lf_file) < li_file_size){
-						ls_str = append(ls_str,lc_c);
-						fscanf(lf_file,"%c",&lc_c);
+						gs_palavra = append(gs_palavra,lc_c);
+
 						lc_c = lower(lc_c);
+						ls_str = append(ls_str,lc_c);
+
+						fscanf(lf_file,"%c",&lc_c);
+
 					}
 					if(ls_str!=NULL){
 						if(!is_letter(lc_c)){
 							insert_word(&gno_root_dictionary,ls_str);
 						}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
+							gs_palavra = append(gs_palavra,lc_c);
+
+							lc_c = lower(lc_c);
 							ls_str = append(ls_str,lc_c);
 							insert_word(&gno_root_dictionary,ls_str);
 						}
