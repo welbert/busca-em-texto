@@ -7,7 +7,7 @@
 typedef struct No{
 	bool exists;//Sinaliza se existe a palavra até esse ponto
 	struct No* sheet[26];
-	char* line;
+	int* line;
 } No;
 
 typedef struct Sugestion{
@@ -20,7 +20,7 @@ typedef struct Sugestion{
 //-----------Constante
 #define c_alphabet_length 26
 #define c_hash 100
-#define c_custo 14 //Constante para controlar o custo de edição
+#define c_custo 2 //Constante para controlar o custo de edição
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
@@ -298,15 +298,22 @@ bool verify_word(No** a_root, char* a_word, int a_line, char a_tipo){//exist_wor
 	else if(a_word[0]=='\0')
 
 		if ((*a_root)->exists){//Se existe a palavra, marca a linha que foi encontrada
-			char aux[5];
 			if (a_line != -1){
 				if((*a_root)->line == NULL){
-					sprintf(aux,"%d",a_line);
-					(*a_root)->line = append_string(NULL,aux);
+					(*a_root)->line = malloc(sizeof(int)*2);
+					(*a_root)->line[0] = a_line;
 				}else{
-					sprintf(aux,"%d",a_line);
-					(*a_root)->line = append((*a_root)->line,',');
-					(*a_root)->line = append_string((*a_root)->line,aux);
+					int* aux;
+					int i=0;
+					aux = (*a_root)->line;
+					(*a_root)->line = malloc(sizeof((*a_root)->line)+sizeof(int)*2);
+
+					while(aux[i]!='\0'){
+						(*a_root)->line[i] = aux[i];
+						i++;
+					}
+					if((*a_root)->line[i-1]!=(*a_root)->line[i])
+						(*a_root)->line[i] = a_line; //TODO fazer a impressao
 				}
 			}
 			return true;
