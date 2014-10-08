@@ -5,7 +5,7 @@
 
 //-------------Estrutura
 typedef struct No{
-	bool* exists;//Sinaliza se existe a palavra até esse ponto
+	char* exists;//Sinaliza se existe a palavra até esse ponto
 	struct No* sheet[26];
 	int* line;
 } No;
@@ -105,7 +105,7 @@ char* append_pos(char* a_str, char a_c, int pos){
 			return aux;
 		}
 		else
-			return append(a_str,a_c);;
+			return append(a_str,a_c);
 
 	}
 }
@@ -170,7 +170,7 @@ void insert_word(No** a_root, char* a_word){
 			insert_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1);//obs: a = 97, logo a-a = 0, posição 0(zero)
 			(*a_root)->exists=false;
 		}else{
-			(*a_root)->exists=true;//Final de palavra
+			(*a_root)->exists=gs_palavra;//Final de palavra
 		}
 
 	}else{
@@ -178,7 +178,7 @@ void insert_word(No** a_root, char* a_word){
 		if(a_word[0] !='\0'){//Se a palavra não chegou ao fim
 			insert_word(&(*a_root)->sheet[a_word[0]-'a'],a_word+1);
 		}else{
-			(*a_root)->exists=true;
+			(*a_root)->exists=gs_palavra;
 		}
 
 	}
@@ -204,9 +204,9 @@ void exist_word(No* a_root, char* a_word){
 	else {
 
 		int i;
-		if(a_root->exists)
+		if(a_root->exists!=NULL)
 			if(a_root->line != NULL){//Se a palavra existe e ocorreu no texto, mostre!
-				printf("%s %d",a_word,a_root->line[0]);
+				printf("%s %d",a_root->exists,a_root->line[0]);
 				for(i=1;a_root->line[i]!='\0';i++)
 					printf(", %d",a_root->line[i]);
 
@@ -438,6 +438,8 @@ void initialize_dictionary(char* a_name_file){
 					}
 				}
 				ls_str=NULL;
+				gs_palavra = NULL;
+				free(gs_palavra);
 				free(ls_str);
 				fclose(lf_file);
 			}else{
@@ -477,14 +479,17 @@ void initialize_text(char* a_name_file){
 
 
 			while(lc_c!=EOF && ftell(lf_file) < li_file_size){//Loop para pegar o texto no arquivo
+				gs_palavra = NULL;
 				ls_str=NULL;
 				fscanf(lf_file,"%c",&lc_c);
-				lc_c = lower(lc_c);
+
 
 				while (is_letter(lc_c) && ftell(lf_file) < li_file_size){
+					gs_palavra = append(gs_palavra,lc_c);
+					lc_c = lower(lc_c);
 					ls_str = append(ls_str,lc_c);
 					fscanf(lf_file,"%c",&lc_c);
-					lc_c = lower(lc_c);
+
 				}
 				if(ls_str!=NULL){
 					if(!is_letter(lc_c)){
@@ -492,14 +497,16 @@ void initialize_text(char* a_name_file){
 						is_correction = false;
 						verify_word(&gno_root_dictionary,ls_str,li_line,'I');
 						if(is_correction)
-							printf("%s %s\n",ls_str,gs_last_word);
+							printf("%s %s\n",gs_palavra,gs_last_word);
 					}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
+						gs_palavra = append(gs_palavra,lc_c);
+						lc_c = lower(lc_c);
 						ls_str = append(ls_str,lc_c);
 						gs_last_word = NULL;
 						is_correction = false;
 						verify_word(&gno_root_dictionary,ls_str,li_line,'I');
 						if(is_correction)
-							printf("%s %s\n",ls_str,gs_last_word);
+							printf("%s %s\n",gs_palavra,gs_last_word);
 					}
 				}
 				if(lc_c == '\n'){
@@ -507,6 +514,8 @@ void initialize_text(char* a_name_file){
 				}
 			}
 			ls_str=NULL;
+			gs_palavra = NULL;
+			free(gs_palavra);
 			free(ls_str);
 			fclose(lf_file);
 
