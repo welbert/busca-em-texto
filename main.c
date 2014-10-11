@@ -8,7 +8,7 @@
 typedef struct No{
 	char* exists;//Sinaliza se existe a palavra até esse ponto
 	struct No* sheet[26];
-	int* line;
+	unsigned short int* line;
 } No;
 
 typedef struct Sugestion{
@@ -22,8 +22,8 @@ typedef struct Sugestion{
 //-----------Constante
 #define C_MAX_INT 32767
 #define c_alphabet_length 26
-#define c_hash 100
-#define c_custo 2 //Constante para controlar o custo de edição
+#define C_size_int 4
+#define C_size_char
 //---------------------
 //No trabalho de estrutura fazer com que o texto busque na gramatica e não a gramatica buscar no texto
 
@@ -45,6 +45,36 @@ inline int MIN(int x,int y,int z){
 
 	return result;
 }
+/*
+char* append(char* str,char c){
+	if(str==NULL){
+		char* aux = (char*)malloc(sizeof(char)*2);
+		aux[0] = c;
+		aux[1] = '\0';
+
+		return aux;
+	}else{
+		int len = strlen(str);
+		char* aux = (char*)malloc(sizeof(char)*(len+2));
+		memmove(aux,str,len);
+		aux[len]=c;
+		aux[len+1] = '\0';
+		return aux;
+	}
+}
+
+
+char* append(char* str, char c){
+	char* aux  = (char*)malloc(sizeof(char)*2);
+	aux[0]= c;
+	aux[1]='\0';
+	if(str!=NULL){
+		strcat(str,aux);
+		return str;
+	}else
+		return aux;
+}
+*/
 
 char* append(char* a_str, char a_c) {
 	//-------------------------------------------------------------
@@ -64,14 +94,15 @@ char* append(char* a_str, char a_c) {
 		a_str = NULL;
 
 	if(a_str==NULL){// Se for nulo, aloca um espaço de memoria pra armazenar a letra e o '\0'
-		a_str = (char*)malloc(sizeof(char)*2);
+		a_str = (char*)malloc(2);
 		a_str[0] = a_c;
 		a_str[1] = '\0';
 	}
 	else{
 		int i;
 		ls_new_str = a_str;// salva em um ponteiro temporario
-		a_str = (char*)malloc(sizeof(char)*(strlen(ls_new_str)+2));//Aloca um novo espaço do tamanho da nova palavra
+		i = (strlen(ls_new_str))+2;
+		a_str = (char*)malloc(i);//Aloca um novo espaço do tamanho da nova palavra
 		for(i=0; i< strlen(ls_new_str); i++)
 			a_str[i] = ls_new_str[i];
 		a_str[i] = a_c;
@@ -136,7 +167,7 @@ char* append_string(char* a_str1, char* a_str2) {
 	if(a_str2 != NULL){
 		tamanho += strlen(a_str2);
 	}
-	ls_new_str = malloc(sizeof(char)*tamanho);
+	ls_new_str = (char*)malloc(tamanho);
 	if(a_str1 != NULL){
 		strcpy(ls_new_str, a_str1);
 	}
@@ -164,7 +195,7 @@ void insert_word(No** a_root, char* a_word){
 
 	if (*a_root == NULL){//Caso o nó é nulo (caso base)
 
-		*a_root = malloc(sizeof(No));
+		*a_root = (No*)malloc(sizeof(No));
 
 		for (i = 0;i<c_alphabet_length;i++){
 			(*a_root)->sheet[i]=NULL;//Retirada dos possiveis lixos de memoria
@@ -263,14 +294,14 @@ bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
 		if ((*a_root)->exists!=NULL){//Se existe a palavra, marca a linha que foi encontrada
 
 				if((*a_root)->line == NULL){
-					(*a_root)->line = malloc(sizeof(int)*2);
+					(*a_root)->line = (unsigned short int*)malloc(sizeof(unsigned short int)*2);
 					(*a_root)->line[0] = a_line;
 				}else{
-					int* aux;
+					unsigned short int* aux;
 					int i=0;
 					aux = (*a_root)->line;
-					(*a_root)->line = malloc(sizeof((*a_root)->line)+sizeof(int)*2);
-
+					long tamanho = sizeof((*a_root)->line)+sizeof(unsigned short int)*2;
+					(*a_root)->line = (unsigned short int*)malloc(tamanho);
 					while(aux[i]!='\0'){
 						(*a_root)->line[i] = aux[i];
 						i++;
@@ -299,10 +330,12 @@ int LevenshteinDistance(char* s, char* t)
     int tlen = strlen(t);
     int i,j;
 
-    // create two work vectors of integer distances
-    int* v0 = malloc(sizeof(int)*(tlen+1));//new int[t.Length + 1];
-    int* v1 = malloc(sizeof(int)*(tlen+1));
+    if(abs(slen-tlen)>gi_custo)
+    	return C_MAX_INT;
 
+    // create two work vectors of integer distances
+    int* v0 = (int*)malloc(C_size_int*(tlen+1));//new int[t.Length + 1];
+    int* v1 = (int*)malloc(C_size_int*(tlen+1));
     // initialize v0 (the previous row of distances)
     // this row is A[0][i]: edit distance for an empty s
     // the distance is just the number of characters to delete from t
@@ -329,8 +362,10 @@ int LevenshteinDistance(char* s, char* t)
         for (j = 0; j < tlen+1; j++)
             v0[j] = v1[j];
     }
-
-    return v1[tlen];
+    int result = v1[tlen];
+    free(v0);
+    free(v1);
+    return result;
 }
 
 char* correct_word(No* a_root, char* a_word){
@@ -361,31 +396,65 @@ char* correct_word(No* a_root, char* a_word){
 
 }
 
-void insert_word_in_list(char* str,int len){
-	Sugestion* aux = gno_sugestion;
-	gs_palavra = str;
+void insert_word_in_list(Sugestion** No,char* str,int len){
+	Sugestion* aux;
+	aux = (*No);
 	gi_custo = C_MAX_INT;
+	gs_sugestion_word = NULL;
 	if(aux==NULL){
-		gno_sugestion = (Sugestion *)malloc(sizeof(Sugestion));
-		gno_sugestion->word_text = str;
-		gno_sugestion->length = len;
-
+		(*No) = (Sugestion *)malloc(sizeof(Sugestion));
+		(*No)->word_text = gs_palavra;
+		(*No)->length = len;
+		gs_palavra = str;
 		correct_word(gno_root_dictionary,NULL);
-		gno_sugestion->word_sugestion = gs_sugestion_word;
+		(*No)->word_sugestion = gs_sugestion_word;
 
 	}else{
-		while (aux->prox != NULL)
-			aux = aux->prox;
+		bool finded = false;
+		Sugestion* novo_no =(Sugestion *)malloc(sizeof(Sugestion));
+		if(aux->length == len)
+			if(strcmp(aux->word_text , gs_palavra)==0){
+				gs_sugestion_word = aux->word_sugestion;
+				finded = true;
+			}
 
-		aux = (Sugestion *)malloc(sizeof(Sugestion));
-		aux->word_text = str;
-		aux->length = len;
-		aux->word_sugestion = correct_word(gno_root_dictionary,NULL);
+
+		while (aux->prox != NULL){
+			aux = aux->prox;
+			if(aux->length == len && !finded)
+				if(strcmp(aux->word_text , gs_palavra)==0){
+					gs_sugestion_word = aux->word_sugestion;
+					finded = true;
+				}
+
+		}
+
+		novo_no->word_text = gs_palavra;
+		novo_no->length = len;
+
+		gs_palavra = str;
+		if(!finded)
+			correct_word(gno_root_dictionary,NULL);
+
+		novo_no->word_sugestion = gs_sugestion_word;
+		novo_no->prox = NULL;
+
+		aux->prox = novo_no;
+
 
 	}
-	printf("%s %s\n",gs_palavra,gs_sugestion_word);
+	//printf("%s %s\n",gs_palavra,gs_sugestion_word);
 }
 
+void show_list(Sugestion* no){
+	if(no==NULL)
+		return;
+
+	while(no!=NULL){
+		printf("%s %s\n",no->word_text,no->word_sugestion);
+		no = no->prox;
+	}
+}
 
 bool is_letter(char a_c){
 	//-------------------------------------------------------------
@@ -437,13 +506,14 @@ void initialize_dictionary(char* a_name_file){
 	//-------------------------------------------------------------
 
 	FILE *lf_file;
-			lf_file = fopen("Debug/gramatica.txt","r");
-			//lf_file = fopen(a_name_file,"r"); // Gramatica
+			//lf_file = fopen("Debug/gramatica.txt","r");
+			//if(a_name_file!=NULL)
+				lf_file = fopen(a_name_file,"r");
+
 			if(lf_file!=NULL){
 				char lc_c;
 				char* ls_str;
 				long int li_file_size;
-
 
 				gno_root_dictionary = NULL;
 
@@ -466,7 +536,6 @@ void initialize_dictionary(char* a_name_file){
 
 						lc_c = lower(lc_c);
 						ls_str = append(ls_str,lc_c);
-
 						fscanf(lf_file,"%c",&lc_c);
 
 					}
@@ -507,8 +576,10 @@ void initialize_text(char* a_name_file){
 	//-------------------------------------------------------------
 
 	FILE *lf_file;
-		lf_file = fopen("Debug/texto.txt","r");
-		//f = fopen(a_name_file,"r"); // Gramatica
+		//lf_file = fopen("Debug/texto.txt","r");
+		//if(a_name_file!=NULL)
+			lf_file = fopen(a_name_file,"r");
+
 		if(lf_file!=NULL){
 			char lc_c;
 			char* ls_str;
@@ -541,14 +612,14 @@ void initialize_text(char* a_name_file){
 				if(ls_str!=NULL){
 					if(!is_letter(lc_c)){
 						if(!verify_word(&gno_root_dictionary,ls_str,li_line))
-							insert_word_in_list(ls_str,len);
+							insert_word_in_list(&gno_sugestion,ls_str,len);
 					}else{//Necessário devido ao final de texto(código exclui a ultima letra por causa do while)
 						len++;
 						gs_palavra = append(gs_palavra,lc_c);
 						lc_c = lower(lc_c);
 						ls_str = append(ls_str,lc_c);
 						if(!verify_word(&gno_root_dictionary,ls_str,li_line))
-							insert_word_in_list(ls_str,len);
+							insert_word_in_list(&gno_sugestion,ls_str,len);
 					}
 				}
 				if(lc_c == '\n'){
@@ -575,17 +646,18 @@ int main(int argc, char **argv) {
 	if(argc >= 1){//Mudar dps para 3<<<<<<<<<<<<<<<<<<<<<<<<<
 
 		initialize_dictionary(argv[1]);
+
 		initialize_text(argv[2]);
 
 
 //TODO
-		//1 - Criar estrutura para armazenar os "erros" e as correções
-		//2 - Conserta o problema de inserção da correção
-		//3 - Simplificar códigos
+		//1 - ver o lance do malloc do append(segmentation fault
+
+
 
 
 		exist_word(gno_root_dictionary,NULL);//Mostra a saída
-
+		show_list(gno_sugestion);
 
 	}else{
 		printf("Bad arguments");
