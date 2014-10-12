@@ -506,9 +506,9 @@ void initialize_dictionary(char* a_name_file){
 	//-------------------------------------------------------------
 
 	FILE *lf_file;
-			lf_file = fopen("Debug/gramatica.txt","r");
-			//if(a_name_file!=NULL)
-				//lf_file = fopen(a_name_file,"r");
+			//lf_file = fopen("Debug/gramatica.txt","r");
+			if(a_name_file!=NULL)
+				lf_file = fopen(a_name_file,"r");
 
 			if(lf_file!=NULL){
 				char lc_c;
@@ -576,9 +576,9 @@ void initialize_text(char* a_name_file){
 	//-------------------------------------------------------------
 
 	FILE *lf_file;
-		lf_file = fopen("Debug/texto.txt","r");
+		//lf_file = fopen("Debug/texto.txt","r");
 		//if(a_name_file!=NULL)
-			//lf_file = fopen(a_name_file,"r");
+			lf_file = fopen(a_name_file,"r");
 
 		if(lf_file!=NULL){
 			char lc_c;
@@ -623,6 +623,7 @@ void initialize_text(char* a_name_file){
 					}
 				}
 				if(lc_c == '\n'){
+					printf("%d\n",li_line);
 					li_line++;
 				}
 			}
