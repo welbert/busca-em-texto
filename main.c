@@ -89,7 +89,7 @@ char* append(char* a_str, char a_c) {
 	//			Adiciona uma letra ao final da string, Ex.: cas + a = casa
 	//-------------------------------------------------------------
 
-	char * ls_new_str;
+
 	if(a_str=='\0')
 		a_str = NULL;
 
@@ -99,6 +99,7 @@ char* append(char* a_str, char a_c) {
 		a_str[1] = '\0';
 	}
 	else{
+		char * ls_new_str;
 		int i;
 		ls_new_str = a_str;// salva em um ponteiro temporario
 		i = (strlen(ls_new_str))+2;
@@ -174,6 +175,9 @@ char* append_string(char* a_str1, char* a_str2) {
 	if(a_str2 != NULL){
 		strcat(ls_new_str,a_str2);
 	}
+	free(a_str1);
+	free(a_str2);
+
 	return ls_new_str;
 }
 
@@ -271,7 +275,7 @@ char* exist_word(No* a_root, char* a_word){
 
 
 
-bool verify_word(No** a_root, char* a_word, int a_line){//exist_word 2.0
+bool verify_word(No** a_root, char a_word[], int a_line){//exist_word 2.0
 	//-------------------------------------------------------------
 	//Retorno:
 	//			bool : true = palavra achada
@@ -396,12 +400,12 @@ char* correct_word(No* a_root, char* a_word){
 
 }
 
+
+
 void insert_word_in_list(Sugestion** No,char* str,int len){
-	Sugestion* aux;
-	aux = (*No);
 	gi_custo = C_MAX_INT;
 	gs_sugestion_word = NULL;
-	if(aux==NULL){
+	if((*No)==NULL){
 		(*No) = (Sugestion *)malloc(sizeof(Sugestion));
 		(*No)->word_text = gs_palavra;
 		(*No)->length = len;
@@ -410,6 +414,8 @@ void insert_word_in_list(Sugestion** No,char* str,int len){
 		(*No)->word_sugestion = gs_sugestion_word;
 
 	}else{
+		Sugestion* aux;
+		aux = (*No);
 		bool finded = false;
 		Sugestion* novo_no =(Sugestion *)malloc(sizeof(Sugestion));
 		if(aux->length == len)
@@ -441,6 +447,8 @@ void insert_word_in_list(Sugestion** No,char* str,int len){
 
 		aux->prox = novo_no;
 
+		novo_no = NULL;
+		free(novo_no);
 
 	}
 	//printf("%s %s\n",gs_palavra,gs_sugestion_word);
@@ -506,9 +514,9 @@ void initialize_dictionary(char* a_name_file){
 	//-------------------------------------------------------------
 
 	FILE *lf_file;
-			//lf_file = fopen("Debug/gramatica.txt","r");
+			lf_file = fopen("Debug/gramatica.txt","r");
 			//if(a_name_file!=NULL)
-				lf_file = fopen(a_name_file,"r");
+				//lf_file = fopen(a_name_file,"r");
 
 			if(lf_file!=NULL){
 				char lc_c;
@@ -520,6 +528,7 @@ void initialize_dictionary(char* a_name_file){
 				fseek(lf_file, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
 				li_file_size = ftell(lf_file);//pegar o tamanho do arquivo
 				fseek(lf_file,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
+
 
 
 				lc_c=' ';//preenche com qualquer coisa para entao entrar no while
@@ -562,7 +571,7 @@ void initialize_dictionary(char* a_name_file){
 			}
 
 }
-
+/*
 void initialize_text(char* a_name_file){
 	//-------------------------------------------------------------
 	//Retorno:
@@ -576,9 +585,9 @@ void initialize_text(char* a_name_file){
 	//-------------------------------------------------------------
 
 	FILE *lf_file;
-		//lf_file = fopen("Debug/texto.txt","r");
+		lf_file = fopen("Debug/texto.txt","r");
 		//if(a_name_file!=NULL)
-			lf_file = fopen(a_name_file,"r");
+			//lf_file = fopen(a_name_file,"r");
 
 		if(lf_file!=NULL){
 			char lc_c;
@@ -591,7 +600,6 @@ void initialize_text(char* a_name_file){
 			li_file_size = ftell(lf_file);//pegar o tamanho do arquivo
 			fseek(lf_file,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
 
-
 			lc_c=' ';//preenche com qualquer coisa para entao entrar no while
 
 
@@ -600,6 +608,7 @@ void initialize_text(char* a_name_file){
 				gs_palavra = NULL;
 				ls_str=NULL;
 				fscanf(lf_file,"%c",&lc_c);
+
 
 				while (is_letter(lc_c) && ftell(lf_file) < li_file_size){
 					len++;
@@ -624,6 +633,7 @@ void initialize_text(char* a_name_file){
 				}
 				if(lc_c == '\n'){
 					li_line++;
+					printf("%d\n",li_line);
 				}
 			}
 			ls_str=NULL;
@@ -638,13 +648,53 @@ void initialize_text(char* a_name_file){
 		}
 
 }
+*/
+void initialize_text(char* a_name_file){
+	FILE *lf_file;
+	lf_file = fopen("Debug/texto.txt","r");
+	//if(a_name_file!=NULL)
+		//lf_file = fopen(a_name_file,"r");
 
+	if(lf_file!=NULL){
+		long int li_file_size;
+		int li_line = 1;
+		int len,string_begin;
+		char* ls_text;
+
+		fseek(lf_file, 0L, SEEK_END);//deslocar o curso para o fim para poder pegar seu tamanho maximo
+		li_file_size = ftell(lf_file);//pegar o tamanho do arquivo
+		fseek(lf_file,0,SEEK_SET);//setar o cursor do arquivo para o ��nicio
+
+		ls_text = (char*)malloc(li_file_size);
+		while( (fgets(ls_text,li_file_size,lf_file)) != NULL){
+			printf("%s",ls_text+1);
+			int i =0;
+			while(ls_text[i]!='\0'){
+				len=0;
+				while(is_letter(ls_text[i])){
+					string_begin = i;
+					len++;
+
+					i++;
+				}
+				i++;
+			}
+			li_line++;
+		}
+
+
+
+		free(ls_text);
+	}else{
+		printf("File (%s) not found!",a_name_file);
+		exit(-1);
+	}
+}
 
 int main(int argc, char **argv) {
 
 
 	if(argc >= 1){//Mudar dps para 3<<<<<<<<<<<<<<<<<<<<<<<<<
-
 		initialize_dictionary(argv[1]);
 
 		initialize_text(argv[2]);
